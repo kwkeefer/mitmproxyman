@@ -1,0 +1,16 @@
+[project]
+name = "mitmproxyman"
+version = "0.1.0"
+description = "A utility for managing mitmproxy"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "mitmproxy>=11.1.0",
+    "pydantic>=2.10.5",
+    "pyyaml>=6.0.2",
+    "types-pyyaml>=6.0.12.20241230",
+]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
