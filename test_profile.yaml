@@ -1,5 +1,0 @@
-name: test
-cookies: 
-  auth: test
-  hi: mom
-scope: r"example\.com"

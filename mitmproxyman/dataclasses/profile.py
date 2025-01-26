@@ -1,16 +1,18 @@
+import json
+from re import Pattern
+from typing import TYPE_CHECKING, Dict, List, Optional
+
 from pydantic import Field
 from pydantic.dataclasses import dataclass
 
-from re import Pattern
-from typing import Dict, Optional
+if TYPE_CHECKING:
+    from .cookie import Cookie
 
 
 @dataclass
 class Profile:
     name: str = Field(description="name of the profile")
-    cookies: Dict[str, str] = Field(
-        default_factory=dict, description="cookies to add/modify"
-    )
+    cookies: List["Cookie"] = Field(description="cookies to add/modify")
     headers: Dict[str, str] = Field(
         default_factory=dict, description="headers to add/modify"
     )
@@ -21,3 +23,10 @@ class Profile:
         default=None,
         description="A regex scope.  Only requests with a matching host will be modified.",
     )
+
+    def to_json(self) -> str:
+        return json.dumps(self.__dict__)
+
+    @staticmethod
+    def from_json(data: str) -> "Profile":
+        return Profile(**json.loads(data))
