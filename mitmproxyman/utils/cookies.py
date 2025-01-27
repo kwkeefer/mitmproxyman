@@ -1,47 +1,10 @@
+import re
 from http.cookies import SimpleCookie
 
-from mitmproxyman.dataclasses import Cookie
+from mitmproxyman.dataclasses.cookie import Cookie
 
 
-def build_response_cookie_header(
-    cookie: Cookie, include_header_key: bool = False
-) -> str:
-    """Creates a header string that can be used to set cookies in an HTTP response
-
-    Args:
-        cookie: Cookie object
-        include_header_key: if true "Set-Cookie:" will be added to the returned string
-
-    Returns:
-        cookie string
-    """
-    simple_cookie = SimpleCookie()
-    simple_cookie[cookie.name] = cookie.value
-
-    if cookie.domain is not None:
-        simple_cookie[cookie.name]["domain"] = cookie.domain
-    if cookie.path is not None:
-        simple_cookie[cookie.name]["path"] = cookie.path
-    if cookie.expires is not None:
-        simple_cookie[cookie.name]["expires"] = cookie.expires
-    if cookie.max_age is not None:
-        simple_cookie[cookie.name]["max-age"] = cookie.max_age
-    if cookie.secure:
-        simple_cookie[cookie.name]["secure"] = True
-    if cookie.httponly:
-        simple_cookie[cookie.name]["httponly"] = True
-    if cookie.samesite is not None:
-        simple_cookie[cookie.name]["samesite"] = cookie.samesite
-
-    if include_header_key:
-        header = "Set-Cookie:"
-    else:
-        header = ""
-
-    return simple_cookie.output(header=header, sep=";").strip()
-
-
-def build_request_cookie_header(
+def create_request_header_from_cookies(
     cookies: list[Cookie], include_header_key: bool = False
 ) -> str:
     """Creates a cookie header string for HTTP requests
@@ -52,10 +15,32 @@ def build_request_cookie_header(
     Returns:
         Cookie string
     """
-
     if include_header_key:
         header = "Cookie: "
     else:
         header = ""
 
     return header + "; ".join([f"{c.name}={c.value}" for c in cookies])
+
+
+def create_cookies_from_request_header(cookies_header: str) -> list[Cookie]:
+    cookies_header = re.sub(r"^Cookie: ", "", cookies_header)
+    s = SimpleCookie()
+    s.load(cookies_header)
+
+    cookies = []
+    for k in s.keys():
+        cookies.append(Cookie(name=k, value=s[k].value))
+    return cookies
+
+
+def merge_and_replace_cookies(
+    original_cookies: list[Cookie], new_cookies: list[Cookie]
+):
+    new_cookies_keys = {c.name for c in new_cookies}  # Use a set for faster lookups
+
+    original_with_matches_removed = [
+        c for c in original_cookies if c.name not in new_cookies_keys
+    ]
+
+    return original_with_matches_removed + new_cookies
