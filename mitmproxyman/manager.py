@@ -58,7 +58,8 @@ def load_project(project_conf: dict[str, Any]) -> list[Profile]:
     profiles = []
     for p in profile_files:
         with open(p) as f:
-            profiles.append(Profile.from_json(f.read()))
+            data = f.read()
+            profiles.append(Profile.from_json(data))
     return profiles
 
 
@@ -75,7 +76,3 @@ def get_project_configuration():
     else:
         print(f"Config not found.  Creating example config at {config_path}")
         _init_config()
-
-
-profiles = get_project_configuration()
-print(profiles)

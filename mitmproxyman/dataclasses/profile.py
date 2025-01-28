@@ -1,12 +1,11 @@
 import json
 from re import Pattern
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import Dict, List, Optional
 
-from pydantic import Field
+from pydantic import Field, ValidationError
 from pydantic.dataclasses import dataclass
 
-if TYPE_CHECKING:
-    from .cookie import Cookie
+from mitmproxyman.dataclasses.cookie import Cookie
 
 
 @dataclass
@@ -29,4 +28,13 @@ class Profile:
 
     @staticmethod
     def from_json(data: str) -> "Profile":
-        return Profile(**json.loads(data))
+        d = json.loads(data)
+        cookies = []
+        for c in d.get("cookies", []):
+            try:
+                cookies.append(Cookie(**c))
+            except ValidationError as e:
+                print(f"Unable to load cookie: {c.get('name')}")
+                print(e.errors())
+        d["cookies"] = cookies
+        return Profile(**d)
